@@ -22,6 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/gl/gl_sync.h"
 #include "tensorflow/lite/delegates/gpu/gl/portable_gl31.h"
 
+  #include <fstream>
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -31,6 +33,11 @@ class DefaultCommandQueue : public CommandQueue {
  public:
   Status Dispatch(const GlProgram& program, const uint3& workgroups) override {
     RETURN_IF_ERROR(program.Dispatch(workgroups));
+  // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "Dispatch::glMemoryBarrier" << std::endl;
+  outfile.close();
     return TFLITE_GPU_CALL_GL(glMemoryBarrier, GL_ALL_BARRIER_BITS);
   }
 

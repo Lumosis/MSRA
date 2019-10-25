@@ -17,6 +17,9 @@ limitations under the License.
 
 #include "tensorflow/lite/delegates/gpu/common/status.h"
 
+
+  #include <fstream>
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -30,6 +33,13 @@ Status CopyBuffer(const GlBuffer& read_buffer, const GlBuffer& write_buffer) {
                                                       read_buffer.id());
   gl_buffer_internal::BufferBinder write_buffer_binder(GL_COPY_WRITE_BUFFER,
                                                        write_buffer.id());
+
+    // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "CopyBuffer::glCopyBufferSubData ||| " << "read_buffer.offset:" << read_buffer.offset()
+          << " write_buffer.offset(): " << write_buffer.offset() <<" read_buffer.bytes_size():" << read_buffer.bytes_size() << std::endl;
+  outfile.close();
   return TFLITE_GPU_CALL_GL(glCopyBufferSubData, GL_COPY_READ_BUFFER,
                             GL_COPY_WRITE_BUFFER, read_buffer.offset(),
                             write_buffer.offset(), read_buffer.bytes_size());
@@ -59,12 +69,23 @@ GlBuffer::~GlBuffer() { Invalidate(); }
 
 void GlBuffer::Invalidate() {
   if (has_ownership_ && id_ != GL_INVALID_INDEX) {
+  // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "Invalidate::glDeleteBuffers ||| " << "size: " << 1 << " buffer_id: " << id_ << std::endl;
+  outfile.close();
     TFLITE_GPU_CALL_GL(glDeleteBuffers, 1, &id_).IgnoreError();
     id_ = GL_INVALID_INDEX;
   }
 }
 
 Status GlBuffer::BindToIndex(uint32_t index) const {
+    // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "BindToIndex::glBindBufferRange ||| " << " target_:" << target_ << " index:" << index << " id_:" << id_<<  " offset_:" << offset_ << " bytes_size" << bytes_size_ << std::endl;
+  
+  outfile.close();
   return TFLITE_GPU_CALL_GL(glBindBufferRange, target_, index, id_, offset_,
                             bytes_size_);
 }
@@ -119,11 +140,19 @@ Status CreatePersistentBuffer(size_t size, GlPersistentBuffer* gl_buffer) {
   }
   gl_buffer_internal::BufferId id;
   gl_buffer_internal::BufferBinder binder(GL_SHADER_STORAGE_BUFFER, id.id());
+    // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "CreatePersistentBuffer::glBufferStorageEXT ||| " << "size: " << size << std::endl;
+  outfile.close();
   RETURN_IF_ERROR(TFLITE_GPU_CALL_GL(
       glBufferStorageEXT, GL_SHADER_STORAGE_BUFFER, size, nullptr,
       GL_MAP_COHERENT_BIT_EXT | GL_MAP_READ_BIT | GL_MAP_WRITE_BIT |
           GL_MAP_PERSISTENT_BIT_EXT));
   void* data = nullptr;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "CreatePersistentBuffer::glMapBufferRange ||| " << "size: " << size << std::endl;
+  outfile.close();
   RETURN_IF_ERROR(TFLITE_GPU_CALL_GL(
       glMapBufferRange, &data, GL_SHADER_STORAGE_BUFFER, 0, size,
       GL_MAP_READ_BIT | GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT_EXT));

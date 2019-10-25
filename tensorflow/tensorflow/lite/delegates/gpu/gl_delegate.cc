@@ -127,6 +127,11 @@ class Delegate {
       RETURN_IF_ERROR(TFLITE_GPU_CALL_GL(glGetBufferParameteri64v,
                                          GL_SHADER_STORAGE_BUFFER,
                                          GL_BUFFER_SIZE, &bytes_size));
+        // add here
+  std::ofstream outfile;
+  outfile.open("log.txt", std::ios::app);
+  outfile << "BindBufferToTensor::glGetBufferParameteri64v ||| bytes_size:" << bytes_size << std::endl;
+  outfile.close();
     }
     return bhwc_objects_.RegisterBuffer(
         tensor_index, GlBuffer(GL_SHADER_STORAGE_BUFFER, ssbo, bytes_size,
